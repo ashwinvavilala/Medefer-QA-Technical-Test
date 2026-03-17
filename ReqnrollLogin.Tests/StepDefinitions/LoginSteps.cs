@@ -22,6 +22,13 @@ public class LoginSteps
             .Build();
     }
 
+    [Given(@"I open the main page at ""(.*)""")]
+    public async Task GivenIOpenTheMainPageAt(string url)
+    {
+    var page = _testContext.Page!;
+    await page.GotoAsync(url);
+    }
+
     [When(@"I login with valid credentials")]
     public async Task WhenILoginWithValidCredentials()
     {

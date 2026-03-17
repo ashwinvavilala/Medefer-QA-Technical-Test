@@ -15,14 +15,6 @@ public class NavigationSteps
         _testContext = testContext;
     }
 
-    [Given(@"I open the main page at ""(.*)""")]
-    public async Task GivenIOpenTheMainPageAt(string url)
-    {
-        var page = _testContext.Page ?? throw new InvalidOperationException("Page was not initialized. Ensure the scenario uses the @ui tag.");
-        var homePage = new HomePage(page);
-        await homePage.OpenAsync(url);
-    }
-
     [When(@"I navigate to page link ""(.*)""")]
     public async Task WhenINavigateToPageLink(string linkText)
     {

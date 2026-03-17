@@ -1,1 +1,5 @@
-{}
+{
+  "reqnroll-feature": {
+    "enableStepDefinitionNavigation": true
+  }
+}
