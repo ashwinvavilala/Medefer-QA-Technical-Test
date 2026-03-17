@@ -10,9 +10,18 @@ This document describes the issues I encountered while working through the Medef
 Getting the Project to Build and Run
 When I first opened the project and ran dotnet build, the solution didn’t compile cleanly. Some namespaces were mismatched, and a few step definition classes were missing the [Binding] attribute, which prevented Reqnroll from discovering them. I corrected the namespaces and ensured all step definition classes were properly decorated so the framework could load them. Once these were fixed, the project built successfully and I could move on to running the tests.
 
+## Step Binding and Framework Wiring Issues
+
+After resolving the configuration problem, I noticed that some steps weren’t being executed correctly. This was due to missing [Binding] attributes and inconsistent namespaces across step definition files. Reqnroll relies heavily on these attributes to discover and bind steps, so I went through each step definition class and ensured they were correctly annotated and placed in the right namespace. Once this was done, all steps bound correctly and the tests could proceed further.
+
+## Step Definition Restructuring for Better Binding and Maintainability
+
+To resolve the binding issues and improve the structure of the framework, I split the original NavigationSteps.cs file into four separate step definition classes. The original file contained multiple unrelated step groups, which made step discovery inconsistent and harder to maintain. Reqnroll relies on clear namespaces and [Binding] attributes, so separating the steps into logical files ensured each class was correctly discovered. This also improved readability and aligned the project with standard BDD practices.
+
 ## The First Major Blocker: Configuration File Not Found
 
-The very first test run failed immediately, and the error pointed to the constructor of LoginSteps. The framework was trying to load appsettings.json, but the file wasn’t found in the output directory. The error message made it clear that the file was expected at:
+The very first test run failed immediately, and the error pointed to the constructor of 'LoginSteps'. The framework was trying to load 'appsettings.json', but the file wasn’t found in the output directory. The error message made it clear that the file was expected at:
+
 ReqnrollLogin.Tests\bin\Debug\net9.0\appsettings.json
 
 Initially, I assumed the file was missing entirely, but after checking the folder structure, I realised the file existed — it just wasn’t being copied during the build. The root cause turned out to be a combination of two issues:
@@ -28,14 +37,6 @@ Initially, I assumed the file was missing entirely, but after checking the folde
 the configuration finally loaded, and the login steps could execute.
 This was a critical fix because without configuration, the entire login flow fails before any UI interaction even begins.
 
-## Step Binding and Framework Wiring Issues
-
-After resolving the configuration problem, I noticed that some steps weren’t being executed correctly. This was due to missing [Binding] attributes and inconsistent namespaces across step definition files. Reqnroll relies heavily on these attributes to discover and bind steps, so I went through each step definition class and ensured they were correctly annotated and placed in the right namespace. Once this was done, all steps bound correctly and the tests could proceed further.
-
-## Step Definition Restructuring for Better Binding and Maintainability
-
-To resolve the binding issues and improve the structure of the framework, I split the original NavigationSteps.cs file into four separate step definition classes. The original file contained multiple unrelated step groups, which made step discovery inconsistent and harder to maintain. Reqnroll relies on clear namespaces and [Binding] attributes, so separating the steps into logical files ensured each class was correctly discovered. This also improved readability and aligned the project with standard BDD practices.
-
 ## Selector Bugs
 
 Page Object Model Bugs: Incorrect Selectors
@@ -49,6 +50,19 @@ I also reviewed other page objects and found similar issues — incorrect IDs, o
 ## Async/Await and Timing Problems
 
 Some of the earlier failures were caused by missing await keywords, which meant certain actions were being triggered before the page was ready. This led to intermittent failures and race conditions. I reviewed the async flow across the page objects and step definitions, ensuring that all Playwright interactions were properly awaited. This stabilised the test execution and eliminated the flakiness.
+
+## Repository Cleanup and .gitignore Fixes
+
+The initial repository included build artifacts such as bin/, obj/,.dll , and .pdb files. These should not be committed because they are machine‑generated and change on every build. I added a proper .gitignore file at the repository root and cleaned the tracked files using:
+
+git rm -r --cached .
+git add .
+
+This ensured the repository only contains source code and documentation, making it cleaner and easier for reviewers to clone and run.
+
+## Test Stability Improvements
+
+After fixing selectors and async issues, I validated the suite across multiple runs to ensure deterministic behaviour. Playwright’s auto‑waiting mechanisms were leveraged consistently, and unnecessary waits were removed. The result was a stable, repeatable test suite with no intermittent failures.
 
 ## Final Outcome
 
@@ -76,4 +90,13 @@ To make it easy for anyone reviewing the project to run the test suite, here is 
   dotnet test
   The tests will launch a Playwright browser instance, execute all scenarios, and display a summary at the end. A successful run should show all five tests passing with no failures.
 
-
+## Future Enhancements
+
+If the framework were to be extended further, I would consider:
+
+- Adding data-test attributes to the AUT for more stable selectors.
+- Introducing dependency injection for cleaner context sharing.
+- Running tests in parallel to reduce execution time.
+- Adding CI/CD integration with Playwright reporting.
+- Implementing API‑level login to bypass UI login for non‑UI scenarios.
+  These enhancements would make the framework more scalable and production‑ready.
