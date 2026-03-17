@@ -32,6 +32,10 @@ This was a critical fix because without configuration, the entire login flow fai
 
 After resolving the configuration problem, I noticed that some steps weren’t being executed correctly. This was due to missing [Binding] attributes and inconsistent namespaces across step definition files. Reqnroll relies heavily on these attributes to discover and bind steps, so I went through each step definition class and ensured they were correctly annotated and placed in the right namespace. Once this was done, all steps bound correctly and the tests could proceed further.
 
+## Step Definition Restructuring for Better Binding and Maintainability
+
+To resolve the binding issues and improve the structure of the framework, I split the original NavigationSteps.cs file into four separate step definition classes. The original file contained multiple unrelated step groups, which made step discovery inconsistent and harder to maintain. Reqnroll relies on clear namespaces and [Binding] attributes, so separating the steps into logical files ensured each class was correctly discovered. This also improved readability and aligned the project with standard BDD practices.
+
 ## Selector Bugs
 
 Page Object Model Bugs: Incorrect Selectors
