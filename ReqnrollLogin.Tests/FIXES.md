@@ -1,11 +1,17 @@
 Medefer QA Technical Test – Debugging & Fix Summary
 Author: Ashwin Vavilala
+
+## Summary and Fixes applied
+
 This document describes the issues I encountered while working through the Medefer QA Technical Test, how I diagnosed them, and the fixes I applied to get the entire suite of scenarios passing. I’ve written this in a natural, narrative style to reflect my actual debugging process and thought flow.
 
-Fixing the Foundation: Getting the Project to Build and Run
+## Fixing the Foundation
+
+Getting the Project to Build and Run
 When I first opened the project and ran dotnet build, the solution didn’t compile cleanly. Some namespaces were mismatched, and a few step definition classes were missing the [Binding] attribute, which prevented Reqnroll from discovering them. I corrected the namespaces and ensured all step definition classes were properly decorated so the framework could load them. Once these were fixed, the project built successfully and I could move on to running the tests.
 
-The First Major Blocker: Configuration File Not Found
+## The First Major Blocker: Configuration File Not Found
+
 The very first test run failed immediately, and the error pointed to the constructor of LoginSteps. The framework was trying to load appsettings.json, but the file wasn’t found in the output directory. The error message made it clear that the file was expected at:
 ReqnrollLogin.Tests\bin\Debug\net9.0\appsettings.json
 
@@ -14,15 +20,19 @@ Initially, I assumed the file was missing entirely, but after checking the folde
 - The file was originally named appsetting.json (missing the “s”).
 - The .csproj file was not configured to copy it to the output directory.
   Once I renamed the file correctly and updated the .csproj with:
-  <None Update="appsettings.json">
+
+<None Update="appsettings.json">
   <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-  </None>
+</None>
 
 the configuration finally loaded, and the login steps could execute.
 This was a critical fix because without configuration, the entire login flow fails before any UI interaction even begins.
 
-Step Binding and Framework Wiring Issues
+## Step Binding and Framework Wiring Issues
+
 After resolving the configuration problem, I noticed that some steps weren’t being executed correctly. This was due to missing [Binding] attributes and inconsistent namespaces across step definition files. Reqnroll relies heavily on these attributes to discover and bind steps, so I went through each step definition class and ensured they were correctly annotated and placed in the right namespace. Once this was done, all steps bound correctly and the tests could proceed further.
+
+## Selector Bugs
 
 Page Object Model Bugs: Incorrect Selectors
 Once the tests started running, the next set of failures came from Playwright timeouts. These errors indicated that the framework was trying to interact with elements that didn’t exist or couldn’t be found on the page.
@@ -32,20 +42,24 @@ Page.Locator("h3")
 But the actual page uses an <h2> tag for the header. This mismatch caused Playwright to wait for five seconds before timing out. Updating the locator to target <h2> fixed the issue immediately.
 I also reviewed other page objects and found similar issues — incorrect IDs, outdated selectors, or overly strict locators. After correcting these, the Checkbox, Dropdown, and Inputs scenarios all ran smoothly.
 
-Async/Await and Timing Problems
+## Async/Await and Timing Problems
+
 Some of the earlier failures were caused by missing await keywords, which meant certain actions were being triggered before the page was ready. This led to intermittent failures and race conditions. I reviewed the async flow across the page objects and step definitions, ensuring that all Playwright interactions were properly awaited. This stabilised the test execution and eliminated the flakiness.
 
-Final Outcome
+## Final Outcome
+
 After addressing all of the above issues — configuration loading, step binding, selector corrections, and async timing — the entire suite ran cleanly. The final test run produced:
 Test summary: total: 5, failed: 0, succeeded: 5, skipped: 0
 Build succeeded
 
 This confirmed that the framework was functioning as intended and that the login scenarios were implemented correctly.
 
-Reflection
+## Reflection
+
 This exercise was a good representation of real-world QA automation work: dealing with broken frameworks, debugging step bindings, fixing selectors, and ensuring async flows behave predictably. The issues were layered in a way that required careful reading of stack traces and a methodical approach to debugging. By resolving each problem one at a time, the framework became stable and the tests passed consistently.
 
-How to Run the Tests
+## How to Run the Tests
+
 To make it easy for anyone reviewing the project to run the test suite, here is the complete set of steps required. These instructions assume that the .NET 9 SDK is already installed.
 
 - Navigate to the root of the project (the folder containing the .sln file):
