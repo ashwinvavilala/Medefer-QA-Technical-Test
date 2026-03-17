@@ -1,7 +1,5 @@
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Json;
-using Microsoft.Extensions.Configuration.EnvironmentVariables;
 using Reqnroll;
 using ReqnrollLogin.Tests.Pages;
 using ReqnrollLogin.Tests.Support;
