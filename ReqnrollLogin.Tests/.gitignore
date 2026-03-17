@@ -1,0 +1,20 @@
+# Build artifacts
+bin/
+obj/
+
+# Test results
+TestResults/
+*.trx
+
+# Cache and temp
+*.tmp
+*.cache
+
+# Debug symbols
+*.pdb
+*.dll
+
+# IDE files
+.vs/
+*.user
+*.suo
