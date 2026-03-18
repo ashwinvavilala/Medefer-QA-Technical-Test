@@ -22,7 +22,7 @@ To resolve the binding issues and improve the structure of the framework, I spli
 
 The very first test run failed immediately, and the error pointed to the constructor of 'LoginSteps'. The framework was trying to load 'appsettings.json', but the file wasn’t found in the output directory. The error message made it clear that the file was expected at:
 
-ReqnrollLogin.Tests\bin\Debug\net9.0\appsettings.json
+'ReqnrollLogin.Tests\bin\Debug\net9.0\appsettings.json'
 
 Initially, I assumed the file was missing entirely, but after checking the folder structure, I realised the file existed — it just wasn’t being copied during the build. The root cause turned out to be a combination of two issues:
 
@@ -36,6 +36,18 @@ Initially, I assumed the file was missing entirely, but after checking the folde
 
 the configuration finally loaded, and the login steps could execute.
 This was a critical fix because without configuration, the entire login flow fails before any UI interaction even begins.
+
+## Duplicate Step Definition Causing Ambiguous Bindings
+
+A major blocker occurred when Reqnroll reported:
+Ambiguous step definitions found for step 'Given I open the main page at "<url>"'
+
+This happened because the same step existed in both 'LoginSteps.cs' and 'NavigationSteps.cs'. Reqnroll cannot choose between duplicates, so all scenarios using this step failed.
+Fix applied:
+
+- Removed the duplicate method from NavigationSteps.cs
+- Kept the canonical implementation in LoginSteps.cs
+  This resolved all ambiguous binding errors.
 
 ## Selector Bugs
 
@@ -67,6 +79,7 @@ After fixing selectors and async issues, I validated the suite across multiple r
 ## Final Outcome
 
 After addressing all of the above issues — configuration loading, step binding, selector corrections, and async timing — the entire suite ran cleanly. The final test run produced:
+
 Test summary: total: 5, failed: 0, succeeded: 5, skipped: 0
 Build succeeded
 
@@ -85,7 +98,8 @@ To make it easy for anyone reviewing the project to run the test suite, here is 
 - Restore all dependencies:
   dotnet restore
 - Install the Playwright browsers (only required the first time on a new machine):
-  playwright install
+  pwsh bin/Debug/net9.0/playwright.ps1 install
+- appsettings.json present and copied to output (handled by .csproj)
 - Run the full test suite:
   dotnet test
   The tests will launch a Playwright browser instance, execute all scenarios, and display a summary at the end. A successful run should show all five tests passing with no failures.
